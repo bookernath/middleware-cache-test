@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cachedFetch } from 'cached-middleware-fetch-next';
 
+/**
+ * Demo middleware showcasing cached-middleware-fetch-next features:
+ * - SWR (Stale-While-Revalidate) caching strategy
+ * - Cache status headers (X-Cache-Status, X-Cache-Age, X-Cache-Expires-In)
+ * - Background refresh using waitUntil() for non-blocking updates
+ * - Separate revalidate and expires times for optimal performance
+ */
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
@@ -11,12 +18,16 @@ export async function middleware(request: NextRequest) {
       const startTime = performance.now();
       
       // Fetch from our demo API with caching
+      // Uses SWR (Stale-While-Revalidate) strategy:
+      // - Data is fresh for 5 seconds
+      // - After 5 seconds, serve stale data instantly while refreshing in background
+      // - After 30 seconds, cache expires completely
       const response = await cachedFetch(
         `https://${process.env.API_HOSTNAME ?? 'cached-middleware-fetch-next-example.vercel.app'}/api/demo`,
         {
           next: {
-            revalidate: 5, // 5 seconds SWR cache
-            expires: 30, // 30 seconds absolute expiry
+            revalidate: 5, // Consider stale after 5 seconds
+            expires: 30,   // Absolute expiry after 30 seconds
             tags: ['demo-api'],
           },
         }
@@ -170,14 +181,15 @@ export async function middleware(request: NextRequest) {
       <p><strong>How it works:</strong></p>
       <ul>
         <li>The middleware fetches from an API endpoint that has a 1000ms delay</li>
-        <li>Responses are cached for 30 seconds using SWR (Stale-While-Revalidate) and absolute expiry</li>
+        <li>Uses SWR (Stale-While-Revalidate) caching strategy with separate revalidate and expiry times</li>
         <li><strong>Cache HIT:</strong> Fresh cached data served instantly (~0-5ms)</li>
-        <li><strong>Cache STALE:</strong> Cached data served instantly, but background refresh triggered (~0-5ms)</li>
-        <li><strong>Cache MISS:</strong> No cached data, full API delay incurred (~1000ms)</li>
-        <li>After 5 seconds, cached data becomes stale and is refreshed in the background</li>
-        <li>After 30 seconds, the cache expires completely and a new fetch is triggered</li>
+        <li><strong>Cache STALE:</strong> Cached data served instantly, background refresh triggered via waitUntil() (~0-5ms)</li>
+        <li><strong>Cache MISS:</strong> No cached data available, full API delay incurred (~1000ms)</li>
+        <li>Data is fresh for 5 seconds (revalidate time)</li>
+        <li>After 5 seconds, data becomes stale but is served instantly while refreshing in background</li>
+        <li>After 30 seconds, cache expires completely and requires a fresh fetch</li>
         <li>The random value helps verify when the cache is actually being used</li>
-        <li>Cache status is now provided via response headers: X-Cache-Status, X-Cache-Age, X-Cache-Expires-In</li>
+        <li>Cache status provided via response headers: X-Cache-Status, X-Cache-Age, X-Cache-Expires-In</li>
       </ul>
     </div>
   </div>
