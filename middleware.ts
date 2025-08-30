@@ -150,7 +150,7 @@ export async function middleware(request: NextRequest) {
 <body>
   <div class="container">
     <h1>Cached Middleware Fetch Demo</h1>
-    <a href="https://github.combookernath/middleware-cache-test/files/middleware.ts" class="view-code-link" target="_blank">View Code</a>
+    <a href="https://github.com/bookernath/middleware-cache-test/blob/main/middleware.ts" class="view-code-link" target="_blank">View Code ↗</a>
     
     <div class="info-grid">
       <div class="info-item ${
