@@ -9,7 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "cached-middleware-fetch-next": "^0.6.2",
+    "cached-middleware-fetch-next": "^0.6.3",
     "next": "15.5.2",
     "react": "19.1.0",
     "react-dom": "19.1.0"
