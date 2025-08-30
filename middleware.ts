@@ -22,8 +22,13 @@ export async function middleware(request: NextRequest) {
       // - Data is fresh for 5 seconds
       // - After 5 seconds, serve stale data instantly while refreshing in background
       // - After 30 seconds, cache expires completely
+      // Use localhost for development, external URL for production
+      const apiUrl = process.env.NODE_ENV === 'development' 
+        ? 'http://localhost:3000/api/demo'
+        : `https://${process.env.API_HOSTNAME ?? 'cached-middleware-fetch-next-example.vercel.app'}/api/demo`;
+      
       const response = await cachedFetch(
-        `https://${process.env.API_HOSTNAME ?? 'cached-middleware-fetch-next-example.vercel.app'}/api/demo`,
+        apiUrl,
         {
           next: {
             revalidate: 5, // Consider stale after 5 seconds
@@ -124,11 +129,28 @@ export async function middleware(request: NextRequest) {
       font-size: 0.875rem;
       line-height: 1.6;
     }
+    .view-code-link {
+      display: inline-block;
+      margin-bottom: 1.5rem;
+      padding: 0.5rem 1rem;
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      color: #0070f3;
+      text-decoration: none;
+      font-size: 0.875rem;
+      transition: all 0.2s;
+    }
+    .view-code-link:hover {
+      background: #e9ecef;
+      border-color: #0070f3;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Cached Middleware Fetch Demo</h1>
+    <a href="https://github.combookernath/middleware-cache-test/files/middleware.ts" class="view-code-link" target="_blank">View Code</a>
     
     <div class="info-grid">
       <div class="info-item ${
