@@ -51,6 +51,6 @@ Visit http://localhost:3000 to see the demo.
 
 ## Production
 
-The demo is deployed at: https://middleware-cache-test-rosy.vercel.app/
+The demo is deployed at: https://cached-middleware-fetch-next-example.vercel.app/
 
 Note: The middleware fetches from the production URL to ensure consistency.

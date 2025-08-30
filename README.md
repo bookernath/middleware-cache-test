@@ -6,7 +6,7 @@ A Next.js demonstration application showcasing the capabilities of [`cached-midd
 
 ## 🚀 Live Demo
 
-**[View Live Demo](https://middleware-cache-test-rosy.vercel.app/)** - Experience real-time caching behavior with performance metrics and cache status indicators.
+**[View Live Demo](https://cached-middleware-fetch-next-example.vercel.app/)** - Experience real-time caching behavior with performance metrics and cache status indicators.
 
 ## 🎯 What This Demo Shows
 
