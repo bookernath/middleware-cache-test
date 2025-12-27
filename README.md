@@ -21,7 +21,7 @@ This application demonstrates how middleware-level caching can dramatically impr
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   User Request  │───▶│   Middleware     │───▶│   Slow API      │
+│   User Request  │───▶│      Proxy       │───▶│   Slow API      │
 │   (Browser)     │    │   (cachedFetch)  │    │   (1000ms delay)│
 └─────────────────┘    └──────────────────┘    └─────────────────┘
                               │
@@ -34,7 +34,7 @@ This application demonstrates how middleware-level caching can dramatically impr
 
 ### Components
 
-1. **Middleware** (`middleware.ts`): Intercepts requests to `/` and fetches from the demo API with caching
+1. **Proxy** (`proxy.ts`): Intercepts requests to `/` and fetches from the demo API with caching
 2. **Demo API** (`/api/demo`): Simulates a slow external service with a 1000ms delay
 3. **Cache Layer**: Uses Vercel Runtime Cache for persistence across requests
 
