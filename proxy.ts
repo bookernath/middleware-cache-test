@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cachedFetch } from 'cached-middleware-fetch-next';
 
 /**
- * Demo middleware showcasing cached-middleware-fetch-next features:
+ * Demo proxy showcasing cached-middleware-fetch-next features:
  * - SWR (Stale-While-Revalidate) caching strategy
  * - Cache status headers (X-Cache-Status, X-Cache-Age, X-Cache-Expires-In)
  * - Background refresh using waitUntil() for non-blocking updates
  * - Separate revalidate and expires times for optimal performance
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // Only process the root path for our demo
@@ -150,7 +150,7 @@ export async function middleware(request: NextRequest) {
 <body>
   <div class="container">
     <h1>Cached Middleware Fetch Demo</h1>
-    <a href="https://github.com/bookernath/middleware-cache-test/blob/main/middleware.ts" class="view-code-link" target="_blank">View Code ↗</a>
+    <a href="https://github.com/bookernath/middleware-cache-test/blob/main/proxy.ts" class="view-code-link" target="_blank">View Code ↗</a>
     
     <div class="info-grid">
       <div class="info-item ${
@@ -202,7 +202,7 @@ export async function middleware(request: NextRequest) {
     <div class="description">
       <p><strong>How it works:</strong></p>
       <ul>
-        <li>The middleware fetches from an API endpoint that has a 1000ms delay</li>
+        <li>The proxy fetches from an API endpoint that has a 1000ms delay</li>
         <li>Uses SWR (Stale-While-Revalidate) caching strategy with separate revalidate and expiry times</li>
         <li><strong>Cache HIT:</strong> Fresh cached data served instantly (~0-5ms)</li>
         <li><strong>Cache STALE:</strong> Cached data served instantly, background refresh triggered via waitUntil() (~0-5ms)</li>
@@ -230,7 +230,7 @@ export async function middleware(request: NextRequest) {
         },
       });
     } catch (error) {
-      console.error('Middleware error:', error);
+      console.error('Proxy error:', error);
       // Fall through to normal Next.js handling on error
     }
   }
