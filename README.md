@@ -1,6 +1,6 @@
 # Cached Middleware Fetch Demo
 
-A Next.js demonstration application showcasing the capabilities of [`cached-middleware-fetch-next`](https://www.npmjs.com/package/cached-middleware-fetch-next) - a fetch wrapper that enables caching in Next.js edge middleware using Vercel's Runtime Cache.
+A Next.js demonstration application showcasing the capabilities of [`cached-middleware-fetch-next`](https://www.npmjs.com/package/cached-middleware-fetch-next) - a fetch wrapper that enables caching in Next.js `proxy.ts` (formerly middleware) using Vercel's Runtime Cache.
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/bookernath/middleware-cache-test)
 
@@ -15,7 +15,8 @@ This application demonstrates how middleware-level caching can dramatically impr
 - **SWR (Stale-While-Revalidate) Caching**: Serves cached data instantly while refreshing in the background
 - **Performance Metrics**: Real-time comparison of cached vs uncached response times
 - **Cache Status Visibility**: Clear indicators showing HIT, MISS, or STALE cache states
-- **Background Refresh**: Non-blocking cache updates using Vercel's `waitUntil()`
+- **Background Refresh**: Non-blocking cache updates scheduled with Next's `after()`
+- **On-demand Expiry**: An "Expire Cache" button calls `expireTag('demo-api')` from a Route Handler
 
 ## 🏗️ Architecture
 
@@ -36,7 +37,8 @@ This application demonstrates how middleware-level caching can dramatically impr
 
 1. **Proxy** (`proxy.ts`): Intercepts requests to `/` and fetches from the demo API with caching
 2. **Demo API** (`/api/demo`): Simulates a slow external service with a 1000ms delay
-3. **Cache Layer**: Uses Vercel Runtime Cache for persistence across requests
+3. **Expire endpoints**: `POST /expire` (handled in the proxy, backs the "Expire Cache" button) and `POST /api/expire` (a Route Handler, the shape you would use for a CMS webhook). Both call `expireTag('demo-api')` to evict tagged entries from Runtime Cache
+4. **Cache Layer**: Uses Vercel Runtime Cache for persistence across requests
 
 ## 🧪 Testing the Cache Behavior
 
@@ -53,12 +55,17 @@ This application demonstrates how middleware-level caching can dramatically impr
 ### After Revalidation Time (Cache STALE)
 - **Cache Status**: `STALE`
 - **Response Time**: ~0-5ms (stale data served instantly)
-- **Behavior**: Background refresh triggered via `waitUntil()`
+- **Behavior**: Background refresh scheduled via `after()`
 
 ### After Expiry Time (Cache MISS)
 - **Cache Status**: `MISS`
 - **Response Time**: ~1000ms (cache expired, fresh fetch required)
 - **Behavior**: Cache completely expired, new data fetched
+
+### Expire Cache Button (Cache MISS on demand)
+- Calls `POST /expire`, which runs `expireTag('demo-api')`
+- The next load is a `MISS` regardless of cache age, because the tagged entry was evicted from Runtime Cache
+- On Vercel, `POST /api/expire` (a Route Handler) has the same effect. Locally, without Runtime Cache, `@vercel/functions` falls back to an in-memory cache per bundle, so only the proxy-handled `/expire` can evict the proxy's entries
 
 ## ⚙️ Cache Configuration
 
@@ -81,7 +88,7 @@ const response = await cachedFetch('/api/demo', {
 ## 🛠️ Local Development
 
 ### Prerequisites
-- Node.js 18+ 
+- Node.js 20+ 
 - npm/yarn/pnpm
 
 ### Setup
@@ -133,8 +140,8 @@ The demo exposes cache information through response headers:
 ## 📚 Related Resources
 
 - **Package Documentation**: [cached-middleware-fetch-next](https://www.npmjs.com/package/cached-middleware-fetch-next)
-- **Next.js Middleware**: [Official Documentation](https://nextjs.org/docs/app/building-your-application/routing/middleware)
-- **Vercel Runtime Cache**: [Edge Functions Documentation](https://vercel.com/docs/functions/edge-functions/edge-runtime#cache-api)
+- **Next.js Proxy**: [Official Documentation](https://nextjs.org/docs/app/getting-started/proxy)
+- **Vercel Runtime Cache**: [Official Documentation](https://vercel.com/docs/caching/runtime-cache)
 
 ## 🤝 Contributing
 

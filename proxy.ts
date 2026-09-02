@@ -1,15 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cachedFetch } from 'cached-middleware-fetch-next';
+import { cachedFetch, expireTag } from 'cached-middleware-fetch-next';
 
 /**
  * Demo proxy showcasing cached-middleware-fetch-next features:
  * - SWR (Stale-While-Revalidate) caching strategy
  * - Cache status headers (X-Cache-Status, X-Cache-Age, X-Cache-Expires-In)
- * - Background refresh using waitUntil() for non-blocking updates
+ * - Background refresh scheduled with Next's after() for non-blocking updates
  * - Separate revalidate and expires times for optimal performance
+ * - On-demand expiry by cache tag via expireTag() (POST /expire below, or the
+ *   webhook-style Route Handler in app/api/expire/route.ts)
+ *
+ * Runs on the Node.js runtime (the default for proxy.ts in Next 16).
  */
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
+
+  // "Expire Cache" button: evict every entry tagged 'demo-api' from Runtime Cache.
+  // Handled here rather than only in a Route Handler so it also works in local
+  // dev, where @vercel/functions falls back to a per-bundle in-memory cache.
+  if (pathname === '/expire' && request.method === 'POST') {
+    await expireTag('demo-api');
+    return NextResponse.json({ expired: ['demo-api'], at: new Date().toISOString() });
+  }
 
   // Only process the root path for our demo
   if (pathname === '/') {
@@ -48,6 +60,7 @@ export async function proxy(request: NextRequest) {
       const cacheStatus = response.headers.get('X-Cache-Status') || 'UNKNOWN';
       const cacheAge = parseInt(response.headers.get('X-Cache-Age') || '0', 10);
       const cacheExpiresIn = response.headers.get('X-Cache-Expires-In');
+      const cacheTags = ['demo-api'];
 
       // Create an HTML response with the cache information
       const html = `
@@ -121,6 +134,24 @@ export async function proxy(request: NextRequest) {
     .refresh-button:hover {
       background: #0051cc;
     }
+    .expire-button {
+      background: #ef4444;
+      margin-left: 0.75rem;
+    }
+    .expire-button:hover {
+      background: #b91c1c;
+    }
+    .expire-button[disabled] {
+      opacity: 0.6;
+      cursor: wait;
+    }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.875em;
+      background: rgba(0,0,0,0.05);
+      padding: 0.1em 0.3em;
+      border-radius: 3px;
+    }
     .description {
       margin-top: 2rem;
       padding: 1rem;
@@ -190,6 +221,11 @@ export async function proxy(request: NextRequest) {
       ` : ''}
       
       <div class="info-item">
+        <strong>Cache Tags</strong>
+        <div class="value">${cacheTags.map(t => `<code>${t}</code>`).join(' ')}</div>
+      </div>
+      
+      <div class="info-item">
         <strong>Current Time</strong>
         <div class="value">${new Date().toISOString()}</div>
       </div>
@@ -198,6 +234,21 @@ export async function proxy(request: NextRequest) {
     <button class="refresh-button" onclick="window.location.reload()">
       Refresh Page
     </button>
+    <button class="refresh-button expire-button" id="expire" onclick="expireCache()">
+      Expire Cache (expireTag)
+    </button>
+    <script>
+      async function expireCache() {
+        const btn = document.getElementById('expire');
+        btn.disabled = true;
+        btn.textContent = 'Expiring…';
+        try {
+          await fetch('/expire', { method: 'POST' });
+        } finally {
+          window.location.reload();
+        }
+      }
+    </script>
     
     <div class="description">
       <p><strong>How it works:</strong></p>
@@ -205,12 +256,13 @@ export async function proxy(request: NextRequest) {
         <li>The proxy fetches from an API endpoint that has a 1000ms delay</li>
         <li>Uses SWR (Stale-While-Revalidate) caching strategy with separate revalidate and expiry times</li>
         <li><strong>Cache HIT:</strong> Fresh cached data served instantly (~0-5ms)</li>
-        <li><strong>Cache STALE:</strong> Cached data served instantly, background refresh triggered via waitUntil() (~0-5ms)</li>
+        <li><strong>Cache STALE:</strong> Cached data served instantly, background refresh scheduled via Next's <code>after()</code> (~0-5ms)</li>
         <li><strong>Cache MISS:</strong> No cached data available, full API delay incurred (~1000ms)</li>
         <li>Data is fresh for 5 seconds (revalidate time)</li>
         <li>After 5 seconds, data becomes stale but is served instantly while refreshing in background</li>
         <li>After 30 seconds, cache expires completely and requires a fresh fetch</li>
         <li>The random value helps verify when the cache is actually being used</li>
+        <li><strong>Expire Cache</strong> calls <code>expireTag('demo-api')</code>; the next load is a MISS regardless of age. The same call works from a Route Handler (<code>POST /api/expire</code>) for webhook-driven invalidation</li>
         <li>Cache status provided via response headers: X-Cache-Status, X-Cache-Age, X-Cache-Expires-In</li>
       </ul>
     </div>

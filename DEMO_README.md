@@ -1,6 +1,6 @@
 # Cached Middleware Fetch Demo
 
-This Next.js app demonstrates the capabilities of `cached-middleware-fetch-next` library, showcasing how middleware-level caching works with Vercel's edge runtime.
+This Next.js app demonstrates the capabilities of `cached-middleware-fetch-next` library, showcasing how proxy-level caching works with Vercel Runtime Cache.
 
 ## How It Works
 
@@ -9,7 +9,7 @@ This Next.js app demonstrates the capabilities of `cached-middleware-fetch-next`
    - A random value (to verify cache behavior)
    - Server time
 
-2. **Middleware**: Intercepts requests to the root path (`/`) and:
+2. **Proxy** (`proxy.ts`): Intercepts requests to the root path (`/`) and:
    - Fetches from the demo API using `cachedFetch`
    - Caches responses for 30 seconds (SWR behavior)
    - Measures fetch performance
@@ -35,7 +35,8 @@ This Next.js app demonstrates the capabilities of `cached-middleware-fetch-next`
 
 ## Key Features Demonstrated
 
-- ✅ Edge middleware caching
+- ✅ Proxy (`proxy.ts`) caching on the Node.js runtime
+- ✅ On-demand expiry by tag via `expireTag()` (`/api/expire`)
 - ✅ SWR (Stale-While-Revalidate) behavior
 - ✅ Performance improvement (1000ms → ~5ms)
 - ✅ Cache status visibility
@@ -53,4 +54,4 @@ Visit http://localhost:3000 to see the demo.
 
 The demo is deployed at: https://cached-middleware-fetch-next-example.vercel.app/
 
-Note: The middleware fetches from the production URL to ensure consistency.
+Note: The proxy fetches from the production URL to ensure consistency.
